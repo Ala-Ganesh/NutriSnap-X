@@ -1,4 +1,13 @@
-from curses import flash
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    send_file,
+    current_app
+)
 
 from utils.helpers import personalization_advice
 from utils.helpers import weekly_limits, weekly_limit_alerts
@@ -36,43 +45,44 @@ def home():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    from flask import flash, redirect, url_for
-from models import User   # adjust import if different
 
-if request.method == "POST":
+    if request.method == "POST":
 
-    email = request.form["email"]
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+        age = request.form["age"]
+        weight = request.form["weight"]
+        height = request.form["height"]
+        goal = request.form["goal"]
 
-    existing = User.query.filter_by(email=email).first()
+        # check existing user
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            flash("Email already registered. Please login.")
+            return redirect(url_for("auth.login"))
 
-    if existing:
-        flash("Email already registered. Please login instead.")
-        return redirect(url_for("login"))   # or your login route name
+        hashed_password = generate_password_hash(password)
 
-    new_user = User(
-        name=request.form["name"],
-        email=email,
-        password=hashed_password,
-        age=request.form["age"],
-        weight=request.form["weight"],
-        height=request.form["height"],
-        goal=request.form["goal"]
-    )
+        new_user = User(
+            name=name,
+            email=email,
+            password=hashed_password,
+            age=age,
+            weight=weight,
+            height=height,
+            goal=goal
+        )
 
-    db.session.add(new_user)
-    db.session.commit()
-    
+        db.session.add(new_user)
+        db.session.commit()
 
-    flash("Registration successful. Please login.")
-    return redirect(url_for("login"))
+        flash("Registration successful. Please login.")
+        return redirect(url_for("auth.login"))
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div style="color:red; font-weight:600;">
-        {{ messages[0] }}
-        </div>
-    {% endif %}
-    {% endwith %}
+    return render_template("register.html")
+
+
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])

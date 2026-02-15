@@ -1,4 +1,11 @@
 <h2>Register</h2>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div style="color:red; font-weight:600;">
+      {{ messages[0] }}
+    </div>
+  {% endif %}
+{% endwith %}
 
 <form method="post">
   Name: <input name="name"><br>
