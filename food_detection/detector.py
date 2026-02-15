@@ -1,5 +1,3 @@
-import torch
-import timm
 from PIL import Image
 from torchvision import transforms
 
@@ -8,36 +6,63 @@ from food_detection.food101_labels import LABELS
 from utils.helpers import health_score
 
 
-# --- load model ---
-model = timm.create_model("resnet50", pretrained=False, num_classes=101)
-model.load_state_dict(
-    torch.load("food_detection/food101_resnet50.pth", map_location="cpu")
-)
-model.eval()
+# -------------------------------
+# Lazy Model Loader
+# -------------------------------
+
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        print("🔄 Loading food model...")
+        import torch
+        import timm
+
+        m = timm.create_model("resnet50", pretrained=False, num_classes=101)
+        m.load_state_dict(
+            torch.load("food_detection/food101_resnet50.pth", map_location="cpu")
+        )
+        m.eval()
+
+        model = m
+        print("✅ Model loaded")
+
+    return model
 
 
-# --- image transform ---
+# -------------------------------
+# Image Transform
+# -------------------------------
+
 transform = transforms.Compose([
-    transforms.Resize((224,224)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(
-        mean=[0.485,0.456,0.406],
-        std=[0.229,0.224,0.225]
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
     )
 ])
 
 
-# ✅ MAIN FUNCTION
+# -------------------------------
+# Main Detection Function
+# -------------------------------
+
 def detect_food(img_path):
+
+    import torch
 
     img = Image.open(img_path).convert("RGB")
     x = transform(img).unsqueeze(0)
 
+    mdl = get_model()
+
     with torch.no_grad():
-        out = model(x)
+        out = mdl(x)
         probs = torch.softmax(out, dim=1)[0]
 
-    # --- top 3 predictions ---
+    # Top 3 predictions
     top_probs, top_idxs = torch.topk(probs, 3)
 
     top_list = []
@@ -59,7 +84,6 @@ def detect_food(img_path):
 
     score = health_score(nutrition)
 
-    # ✅ return MUST be inside function
     return {
         "food": best_food,
         "confidence": round(best_conf, 3),
