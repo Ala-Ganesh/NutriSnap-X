@@ -2,12 +2,10 @@ venv/
 __pycache__/
 *.pyc
 .env
-instance/
-*.db
-
-# model weights
-*.pth
+models/
+weights/
+dataset/
 *.pt
-
-# uploads
-static/uploads/
+*.pth
+*.h5
+*.pkl
