@@ -1,0 +1,21 @@
+<h2>Scan Barcode 📦</h2>
+
+<div id="reader" width="300"></div>
+
+<form method="post">
+  Barcode: <input name="barcode" id="barcodeBox">
+  <button type="submit">Lookup</button>
+</form>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+function onScanSuccess(decodedText) {
+    document.getElementById("barcodeBox").value = decodedText;
+}
+
+new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 })
+    .render(onScanSuccess);
+</script>
+
+<a href="/dashboard">Back</a>

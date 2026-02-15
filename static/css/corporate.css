@@ -1,0 +1,35 @@
+body {
+    background: #f4f7f6;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.card-metric {
+    border: none;
+    border-radius: 14px;
+    padding: 22px;
+    background: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.metric-value {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.btn-primary-soft {
+    background: #2bb673;
+    border: none;
+    color: white;
+}
+
+.btn-primary-soft:hover {
+    background: #239a60;
+}
+footer {
+    background: #f9fafb;
+}

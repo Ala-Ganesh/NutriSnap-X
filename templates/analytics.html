@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="section-title">Nutrition Analytics</h3>
+
+<div class="card-metric mb-4">
+    <h5 class="mb-3">Calories by Food</h5>
+    <canvas id="calChart"></canvas>
+</div>
+
+<div class="card-metric">
+    <h5 class="mb-3">Macros Trend</h5>
+    <canvas id="macroChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const foods = {{ foods|tojson }};
+const calories = {{ calories|tojson }};
+const protein = {{ protein|tojson }};
+const carbs = {{ carbs|tojson }};
+
+new Chart(document.getElementById("calChart"), {
+    type: "bar",
+    data: {
+        labels: foods,
+        datasets: [{
+            label: "Calories",
+            data: calories
+        }]
+    }
+});
+
+new Chart(document.getElementById("macroChart"), {
+    type: "line",
+    data: {
+        labels: foods,
+        datasets: [
+            { label: "Protein", data: protein },
+            { label: "Carbs", data: carbs }
+        ]
+    }
+});
+</script>
+
+{% endblock %}

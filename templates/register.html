@@ -1,0 +1,45 @@
+<h2>Register</h2>
+
+<form method="post">
+  Name: <input name="name"><br>
+  Email: <input name="email"><br>
+  Password: <input name="password" type="password"><br>
+  Age: <input name="age"><br>
+  Weight: <input name="weight"><br>
+  Height: <input name="height"><br>
+
+  Goal:
+  <select name="goal">
+    <option value="weight_loss">Weight Loss</option>
+    <option value="muscle_gain">Muscle Gain</option>
+    <option value="maintain">Maintain</option>
+  </select><br>
+<label class="mt-3 mb-2">Select Your Goal</label>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="goal" value="weight_loss" checked>
+  <label class="form-check-label">Weight Loss</label>
+</div>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="goal" value="weight_gain">
+  <label class="form-check-label">Weight Gain</label>
+</div>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="goal" value="gym">
+  <label class="form-check-label">Gym Freak / Muscle Build</label>
+</div>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="goal" value="standard">
+  <label class="form-check-label">Standard Healthy</label>
+</div>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="goal" value="senior">
+  <label class="form-check-label">Senior Citizen</label>
+</div>
+
+  <button type="submit">Register</button>
+</form>

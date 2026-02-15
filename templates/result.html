@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="section-title">Detection Result</h3>
+
+<div class="card-metric col-md-7">
+
+<img src="/static/uploads/{{image}}" class="img-fluid rounded mb-3">
+
+<h4>{{result.food}}</h4>
+<div class="text-muted mb-3">
+Main Confidence: {{ (result.confidence*100)|round(1) }}%
+</div>
+
+{% if result.confidence < 0.40 %}
+<div class="alert alert-warning">
+Low confidence — image may be unclear or outside dataset.
+</div>
+{% endif %}
+
+<hr>
+
+<h5>Top 3 AI Predictions</h5>
+
+{% for p in result.top3 %}
+<div class="mb-2">
+{{p.food}} — {{ (p.confidence*100)|round(1) }}%
+
+<div class="progress">
+<div class="progress-bar bg-success"
+     style="width: {{p.confidence*100}}%">
+</div>
+</div>
+</div>
+{% endfor %}
+
+<hr>
+
+<h5>Nutrition Estimate</h5>
+
+Calories: {{result.nutrition.calories}} <br>
+Protein: {{result.nutrition.protein}} g<br>
+Carbs: {{result.nutrition.carbs}} g<br>
+
+<hr>
+
+<h5>Health Score (WHO-Inspired Model)</h5>
+
+<div class="progress mb-2">
+<div class="progress-bar bg-info"
+     style="width: {{result.health_score}}%">
+{{result.health_score}} / 100
+</div>
+</div>
+
+{% if result.health_score >= 75 %}
+<div class="text-success">Excellent Meal Quality</div>
+{% elif result.health_score >= 50 %}
+<div class="text-warning">Moderate Meal Quality</div>
+{% else %}
+<div class="text-danger">Needs Improvement</div>
+{% endif %}
+<hr>
+<h5>Smart Suggestions</h5>
+
+{% for t in tips %}
+<div class="alert alert-info">{{t}}</div>
+{% endfor %}
+
+</div>
+
+{% endblock %}
