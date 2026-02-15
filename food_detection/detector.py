@@ -19,7 +19,7 @@ def get_model():
         import torch
         import timm
 
-        m = timm.create_model("resnet50", pretrained=False, num_classes=101)
+        timm.create_model("mobilenetv3_small_100", ...)
         m.load_state_dict(
             torch.load("food_detection/food101_resnet50.pth", map_location="cpu")
         )
