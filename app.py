@@ -1,5 +1,8 @@
 from flask import Flask
 from extensions import db, login_manager
+@app.route("/chat")
+def chat_page():
+    return render_template("chat.html")
 
 def create_app():
     app = Flask(__name__)

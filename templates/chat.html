@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NutriGenie AI Chat</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 30px auto; }
+        #chatBox { border:1px solid #ccc; height:400px; overflow:auto; padding:10px; }
+        .user { color: blue; margin:8px 0; }
+        .bot { color: green; margin:8px 0; }
+    </style>
+</head>
+<body>
+
+<h2>🤖 NutriGenie AI Assistant</h2>
+
+<div id="chatBox"></div>
+
+<input type="text" id="msg" style="width:80%;">
+<button onclick="send()">Send</button>
+
+<script>
+async function send(){
+    const box = document.getElementById("chatBox");
+    const msg = document.getElementById("msg").value;
+    if(!msg) return;
+
+    box.innerHTML += `<div class="user"><b>You:</b> ${msg}</div>`;
+    document.getElementById("msg").value = "";
+
+    const r = await fetch("/api/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({message: msg})
+    });
+
+    const data = await r.json();
+    box.innerHTML += `<div class="bot"><b>NutriGenie:</b> ${data.reply}</div>`;
+    box.scrollTop = box.scrollHeight;
+}
+</script>
+
+</body>
+</html>

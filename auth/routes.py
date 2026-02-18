@@ -35,6 +35,45 @@ from utils.helpers import (
 
 from extensions import db
 from database.models import User
+import os
+from flask import request, jsonify
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+SYSTEM_PROMPT = """
+You are NutriGenie AI — the intelligent assistant inside NutriSnap-X.
+You help users with:
+- food and nutrition questions
+- diet and calorie doubts
+- app usage help
+- general knowledge questions
+
+Answer clearly, simply, and accurately.
+Avoid medical diagnosis claims.
+Keep answers practical and easy to understand.
+"""
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    data = request.get_json()
+    user_msg = data.get("message", "")
+
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg}
+            ],
+            temperature=0.4
+        )
+
+        answer = resp.choices[0].message.content
+        return jsonify({"reply": answer})
+
+    except Exception as e:
+        return jsonify({"reply": "AI is temporarily unavailable. Please try again."})
 
 auth_bp = Blueprint("auth_bp", __name__)
 
