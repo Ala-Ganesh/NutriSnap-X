@@ -7,7 +7,7 @@
   {% endif %}
 {% endwith %}
 
-<form method="post">
+<form method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
   Name: <input name="name"><br>
   Email: <input name="email"><br>
   Password: <input name="password" type="password"><br>
@@ -48,5 +48,5 @@
   <label class="form-check-label">Senior Citizen</label>
 </div>
 
-  <button type="submit">Register</button>
+  <button type="submit" id="analyzeBtn">Analyze Food</button>
 </form>

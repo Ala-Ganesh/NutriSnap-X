@@ -15,6 +15,10 @@
 <!-- Preview -->
 <img id="preview" class="img-fluid rounded mb-3"
      style="display:none; max-height:300px;">
+<div id="loadingBox" style="display:none; margin-top:15px; color:#0b5ed7; font-weight:600;">
+    🤖 Model warming… First prediction may take ~30–60 seconds. Please wait.
+</div>
+
 
 <button id="analyzeBtn" class="btn btn-primary-soft">
     Run AI Detection
@@ -64,6 +68,14 @@ document.getElementById("analyzeForm")
   .addEventListener("submit", function () {
       document.getElementById("loadingOverlay").style.display = "block";
 });
+<script>
+function showLoading() {
+    document.getElementById("loadingBox").style.display = "block";
+    document.getElementById("analyzeBtn").disabled = true;
+    document.getElementById("analyzeBtn").innerText = "Processing...";
+}
+</script>
+
 </script>
 
 {% endblock %}
