@@ -1,24 +1,47 @@
 from PIL import Image
-import random
+import numpy as np
 
 from nutrition.nutrition_db import get_nutrition
 from utils.helpers import health_score
-from food_detection.food101_labels import LABELS
 
 
 def detect_food(img_path):
 
-    # just verify image opens
-    Image.open(img_path).convert("RGB")
+    img = Image.open(img_path).convert("RGB").resize((128, 128))
+    arr = np.array(img)
 
-    # demo-safe lightweight prediction
-    food = random.choice(LABELS[:20])
-    confidence = round(random.uniform(0.75, 0.95), 3)
+    # --- basic color stats ---
+    mean_rgb = arr.mean(axis=(0, 1))
+    r, g, b = mean_rgb
+
+    brightness = arr.mean()
+    green_ratio = g / (r + g + b + 1e-6)
+
+    # --- simple rules ---
+    if green_ratio > 0.38:
+        food = "salad"
+
+    elif brightness > 190:
+        food = "rice"
+
+    elif r > 150 and g > 120 and b < 110:
+        food = "pancakes"
+
+    elif r > g and r > b and brightness < 160:
+        food = "fried_rice"
+
+    elif brightness < 120:
+        food = "chocolate_cake"
+
+    else:
+        food = "pizza"
+
+    confidence = 0.82
 
     nutrition = get_nutrition(food) or {
-        "calories": 220,
-        "protein": 8,
-        "carbs": 30
+        "calories": 250,
+        "protein": 7,
+        "carbs": 35
     }
 
     score = health_score(nutrition)
