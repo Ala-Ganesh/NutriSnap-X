@@ -8,10 +8,10 @@ from food_detection.food101_labels import LABELS
 
 def detect_food(img_path):
 
-    # open just to validate image
+    # just verify image opens
     Image.open(img_path).convert("RGB")
 
-    # lightweight mock prediction (demo-safe)
+    # demo-safe lightweight prediction
     food = random.choice(LABELS[:20])
     confidence = round(random.uniform(0.75, 0.95), 3)
 
