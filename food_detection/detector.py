@@ -19,7 +19,7 @@ def get_model():
         import torch
         import timm
 
-        timm.create_model("mobilenetv3_small_100", ...)
+        timm.create_model("mobilenetv3_small_100", pretrained=True) # m.load_state_dict(torch.load(...))   ← comment this
         m.load_state_dict(
             torch.load("food_detection/food101_resnet50.pth", map_location="cpu")
         )
