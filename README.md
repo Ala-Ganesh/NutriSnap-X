@@ -1,7 +1,7 @@
 # 🥗 NutriSnap-X — AI Nutrition Intelligence System
 
 ## 🌐 Live Demo
-👉  nutrisnap-x.onrender.com
+👉  https://nutrisnap-x.onrender.com
 
 NutriSnap-X is a full-stack AI-powered web application that detects food from images and provides detailed nutritional analysis, health insights, and personalized recommendations.
 
