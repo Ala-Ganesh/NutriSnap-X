@@ -85,19 +85,33 @@ System adjusts recommendations dynamically.
 
 ## 🏗️ System Architecture
 NutriSnap-X/
+
 │
+
 ├── app.py
+
 ├── auth/
+
 ├── database/
+
 ├── food_detection/
+
 ├── nutrition/
+
 ├── utils/
+
 ├── templates/
+
 ├── static/
+
 ├── extensions.py
+
 ├── requirements.txt
+
 ├── Procfile
+
 └── .gitignore
+
 
 
 ---
