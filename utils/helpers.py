@@ -78,22 +78,41 @@ def health_score(nutrition):
 
     total = p_score + c_score + carb_score
     return total
-def smart_alerts(user, today_cal, today_protein):
+
+def smart_alerts(user, total_cal, total_prot):
 
     alerts = []
 
-    goal_cal = calorie_goal(user)
+    # ✅ Welcome message (instead of warning)
+    alerts.append(f"Welcome back, {user.name}! Let's stay healthy today 💪")
 
-    if today_cal > goal_cal:
-        alerts.append("⚠️ Daily calorie limit exceeded")
-
-    if today_protein < 40:
+    # Optional: keep ONE smart alert if needed
+    if total_prot < 50:
         alerts.append("⚠️ Protein intake is low today")
 
-    if today_cal < goal_cal * 0.5:
-        alerts.append("ℹ️ You are far below calorie target")
+    return alerts
+from datetime import datetime
+
+def smart_alerts(user, total_cal, total_prot):
+
+    alerts = []
+
+    hour = datetime.now().hour
+
+    if hour < 12:
+        greeting = "Good Morning"
+    elif hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
+
+    alerts.append(f"{greeting}, {user.name}! Stay healthy today 💪")
+
+    if total_prot < 50:
+        alerts.append("⚠️ Protein intake is low today")
 
     return alerts
+
 def meal_suggestions(user, nutrition):
 
     tips = []
@@ -124,14 +143,19 @@ def weekly_limit_alerts(week_cal, week_prot, week_carbs, limits):
 
     alerts = []
 
-    if week_cal > limits["cal_limit"]:
-        alerts.append("🚨 Weekly calories exceeded healthy limit")
+    # ✅ Protein analysis (MAIN UPGRADE)
+    recommended_prot = limits.get("protein_limit", 350)  # weekly default
 
-    if week_prot < limits["protein_min"]:
-        alerts.append("⚠️ Weekly protein below recommended level")
+    actual_daily = week_prot / 7
+    recommended_daily = recommended_prot / 7
 
-    if week_carbs > limits["carb_limit"]:
-        alerts.append("⚠️ Weekly carbs too high")
+    diff = round(recommended_daily - actual_daily, 1)
+
+    status = "Deficit" if diff > 0 else "Surplus"
+
+    alerts.append(
+        f"Protein: {round(actual_daily,1)}g/day | Target: {round(recommended_daily,1)}g/day | {status}: {abs(diff)}g"
+    )
 
     return alerts
 def personalization_advice(user, week_cal, week_prot, week_avg_score):

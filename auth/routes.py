@@ -1,79 +1,26 @@
-from flask import (
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-    send_file,
-    current_app
-)
-
-from utils.helpers import personalization_advice
-from utils.helpers import weekly_limits, weekly_limit_alerts
-from datetime import datetime, timedelta
-from utils.helpers import smart_alerts
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from flask import send_file
-import io
-from flask_login import current_user
-from database.models import MealLog
-import os
-from flask import current_app
-from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user, login_required
-from sqlalchemy import func
-from nutrition.nutrition_db import get_barcode_nutrition
-from utils.helpers import (
-    weekly_limits,
-    personalization_advice,
-    health_score
-)
+from werkzeug.utils import secure_filename
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from datetime import datetime, timedelta
+import io, os
 
 from extensions import db
-from database.models import User
-import os
-from flask import request, jsonify
-from openai import OpenAI
+from database.models import User, MealLog
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from utils.helpers import (
+    smart_alerts,
+    weekly_limits,
+    weekly_limit_alerts,
+    personalization_advice,
+    health_score,
+    calorie_goal,
+    meal_suggestions
+)
 
-SYSTEM_PROMPT = """
-You are NutriGenie AI — the intelligent assistant inside NutriSnap-X.
-You help users with:
-- food and nutrition questions
-- diet and calorie doubts
-- app usage help
-- general knowledge questions
-
-Answer clearly, simply, and accurately.
-Avoid medical diagnosis claims.
-Keep answers practical and easy to understand.
-"""
-
-@app.route("/api/chat", methods=["POST"])
-def api_chat():
-    data = request.get_json()
-    user_msg = data.get("message", "")
-
-    try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_msg}
-            ],
-            temperature=0.4
-        )
-
-        answer = resp.choices[0].message.content
-        return jsonify({"reply": answer})
-
-    except Exception as e:
-        return jsonify({"reply": "AI is temporarily unavailable. Please try again."})
+from nutrition.nutrition_db import get_barcode_nutrition
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -99,7 +46,7 @@ def register():
         existing = User.query.filter_by(email=email).first()
         if existing:
             flash("Email already registered. Please login.")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth_bp.login"))
 
         hashed_password = generate_password_hash(password)
 
@@ -117,7 +64,7 @@ def register():
         db.session.commit()
 
         flash("Registration successful. Please login.")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth_bp.login"))
 
     return render_template("register.html")
 
@@ -143,15 +90,6 @@ from sqlalchemy import func
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-
-    from datetime import datetime, timedelta
-    from utils.helpers import (
-        smart_alerts,
-        weekly_limits,
-        weekly_limit_alerts,
-        personalization_advice,
-        health_score
-    )
 
     meals = MealLog.query.filter_by(
         user_id=current_user.id
@@ -179,7 +117,7 @@ def dashboard():
     days = 7 if week_meals else 1
     week_avg = week_cal / days
 
-    # ---------- weekly health score avg ----------
+    # ---------- health score ----------
     week_scores = [
         health_score({
             "calories": m.calories,
@@ -191,9 +129,6 @@ def dashboard():
 
     week_avg_score = sum(week_scores)/len(week_scores) if week_scores else 0
 
-    # ---------- alerts ----------
-    alerts = smart_alerts(current_user, total_cal, total_prot)
-
     # ---------- weekly limits ----------
     limits = weekly_limits(current_user)
 
@@ -204,6 +139,19 @@ def dashboard():
         limits
     )
 
+    # ---------- protein progress ----------
+    recommended_prot = limits.get("protein_limit", 350)
+
+    actual_daily = week_prot / 7
+    recommended_daily = recommended_prot / 7
+
+    protein_percent = (actual_daily / recommended_daily) * 100 if recommended_daily else 0
+    protein_percent = min(round(protein_percent, 1), 100)
+
+    # ---------- alerts ----------
+    alerts = smart_alerts(current_user, total_cal, total_prot)
+    alerts = alerts[:1]
+
     # ---------- personalization ----------
     personal_tips = personalization_advice(
         current_user,
@@ -211,27 +159,32 @@ def dashboard():
         week_prot,
         week_avg_score
     )
+    personal_tips = personal_tips[:2]
 
+    # ---------- FINAL RENDER ----------
     return render_template(
         "dashboard.html",
-        total=round(total_cal,1),
-        goal=round(goal_cal,1),
+
+        total=round(total_cal, 1),
+        goal=round(goal_cal, 1),
         alerts=alerts,
 
-        week_cal=round(week_cal,1),
-        week_prot=round(week_prot,1),
+        week_cal=round(week_cal, 1),
+        week_prot=round(week_prot, 1),
         week_count=len(week_meals),
-        week_avg=round(week_avg,1),
+        week_avg=round(week_avg, 1),
 
         week_limit_alerts=week_limit_alerts,
-        week_cal_limit=round(limits["cal_limit"],1),
+        week_cal_limit=round(limits["cal_limit"], 1),
 
         personal_tips=personal_tips,
-        week_avg_score=round(week_avg_score,1)
+        week_avg_score=round(week_avg_score, 1),
+
+        # 🔥 NEW PROGRESS DATA
+        protein_percent=protein_percent,
+        actual_protein=round(actual_daily, 1),
+        target_protein=round(recommended_daily, 1),
     )
-
-
-
 
 
 
@@ -282,6 +235,10 @@ def analyze():
 
 
 
+@auth_bp.route("/analytics")
+@login_required
+def analytics():
+
     meals = MealLog.query.filter_by(user_id=current_user.id).all()
 
     foods = [m.food for m in meals]
@@ -296,6 +253,7 @@ def analyze():
         protein=protein,
         carbs=carbs
     )
+
 
 @auth_bp.route("/barcode", methods=["GET", "POST"])
 @login_required
