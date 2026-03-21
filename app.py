@@ -1,6 +1,5 @@
-from flask import Flask, request, jsonify, redirect, url_for
+from flask import Flask, redirect
 from extensions import db, login_manager
-from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
@@ -26,78 +25,15 @@ def create_app():
     from auth.routes import auth_bp
     app.register_blueprint(auth_bp)
 
-    # -----------------------------
     # Home Route
-    # -----------------------------
     @app.route("/")
     def home():
-        return redirect("/login")   # safest (no url_for issues)
+        return redirect("/login")
 
-    # -----------------------------
-    # Chat Page Route
-    # -----------------------------
-    @app.route("/chat")
-    def chat():
-        return "NutriGenie Chat Running"
+    return app   # ✅ VERY IMPORTANT
 
-    # -----------------------------
-    # Chat API Route
-    # -----------------------------
-    @auth_bp.route("/api/chat", methods=["POST"])
-    def api_chat():
-        if not app.client:
-            return jsonify({"reply": "⚠️ AI service not configured."})
-
-        data = request.get_json()
-        user_msg = data.get("message", "")
-
-        try:
-            resp = app.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_msg}
-                ],
-                temperature=0.4
-            )
-
-            answer = resp.choices[0].message.content
-            return jsonify({"reply": answer})
-
-        except Exception as e:
-            print("Chatbot error:", e)
-            return jsonify({"reply": "⚠️ AI is temporarily unavailable."})
-
-    return app
-
-
-# -----------------------------
-# Create App
-# -----------------------------
+# Create app instance
 app = create_app()
-
-# -----------------------------
-# NutriGenie AI Setup
-# -----------------------------
-openai_key = os.getenv("OPENAI_API_KEY")
-
-if openai_key:
-    app.client = OpenAI(api_key=openai_key)
-else:
-    app.client = None
-
-SYSTEM_PROMPT = """
-You are NutriGenie AI — the intelligent assistant inside NutriSnap-X.
-You help users with:
-- food and nutrition questions
-- diet and calorie doubts
-- app usage help
-- general knowledge questions
-
-Answer clearly and simply.
-Avoid medical diagnosis claims.
-Keep answers practical.
-"""
 
 # -----------------------------
 # Run Server

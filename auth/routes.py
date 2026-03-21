@@ -476,3 +476,38 @@ def privacy():
 def logout():
     logout_user()
     return redirect(url_for("auth_bp.login"))
+
+@auth_bp.route("/api/chat", methods=["POST"])
+def api_chat():
+
+    from flask import request, jsonify
+    from openai import OpenAI
+    import os
+
+    client = None
+    key = os.getenv("OPENAI_API_KEY")
+
+    if key:
+        client = OpenAI(api_key=key)
+
+    if not client:
+        return jsonify({"reply": "⚠️ AI not configured"})
+
+    data = request.get_json()
+    user_msg = data.get("message", "")
+
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are NutriSnap-X AI assistant."},
+                {"role": "user", "content": user_msg}
+            ],
+            temperature=0.4
+        )
+
+        return jsonify({"reply": resp.choices[0].message.content})
+
+    except Exception as e:
+        print("Chat error:", e)
+        return jsonify({"reply": "⚠️ AI error"})
