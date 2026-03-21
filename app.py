@@ -43,7 +43,7 @@ def create_app():
     # -----------------------------
     # Chat API Route
     # -----------------------------
-    @app.route("/api/chat", methods=["POST"])
+    @auth_bp.route("/api/chat", methods=["POST"])
     def api_chat():
         if not app.client:
             return jsonify({"reply": "⚠️ AI service not configured."})
