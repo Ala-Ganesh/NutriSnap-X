@@ -1,4 +1,4 @@
-# 🥗 NutriSnap-X
+# 🥗 NutriSnap-X (Claude)
 ### AI-Based Food Nutrition Analysis Web Application
 **B.Tech Major Project | Full-Stack Flask Application**
 
