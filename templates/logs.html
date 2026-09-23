@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Food Logs — NutriSnap-X{% endblock %}
+{% block page_title %}Food Logs{% endblock %}
+
+{% block content %}
+<div class="content-single">
+
+  <div class="card-ns animate-in">
+    <div class="card-header-ns">
+      <span><i class="bi bi-journal-text me-2 text-ns-green"></i>All Food Logs</span>
+      <span class="text-muted small">{{ logs.total }} entries</span>
+    </div>
+
+    {% if logs.items %}
+    <div class="table-responsive">
+      <table class="table-ns">
+        <thead>
+          <tr>
+            <th>Food</th>
+            <th>Calories</th>
+            <th>Protein</th>
+            <th>Carbs</th>
+            <th>Fat</th>
+            <th>Fibre</th>
+            <th>Source</th>
+            <th>Date &amp; Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs.items %}
+          <tr id="row-{{ log.id }}">
+            <td><strong>{{ log.food_name }}</strong></td>
+            <td><span class="badge-cal">{{ log.calories | int }} kcal</span></td>
+            <td>{{ log.protein | round(1) }}g</td>
+            <td>{{ log.carbs | round(1) }}g</td>
+            <td>{{ log.fat | round(1) }}g</td>
+            <td>{{ log.fibre | round(1) }}g</td>
+            <td><span class="source-badge source-{{ log.source }}">{{ log.source | capitalize }}</span></td>
+            <td class="text-muted small">{{ log.logged_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger-soft" onclick="deleteLog({{ log.id }})" title="Delete">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if logs.pages > 1 %}
+    <div class="d-flex justify-content-center mt-4 gap-2">
+      {% if logs.has_prev %}
+        <a href="{{ url_for('logs', page=logs.prev_num) }}" class="btn btn-outline-ns btn-sm"><i class="bi bi-chevron-left"></i> Prev</a>
+      {% endif %}
+      <span class="btn btn-sm btn-period active">Page {{ logs.page }} of {{ logs.pages }}</span>
+      {% if logs.has_next %}
+        <a href="{{ url_for('logs', page=logs.next_num) }}" class="btn btn-outline-ns btn-sm">Next <i class="bi bi-chevron-right"></i></a>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-journal-plus"></i>
+      <p>No food logs yet. Start tracking your meals!</p>
+      <div class="d-flex gap-2 justify-content-center">
+        <a href="{{ url_for('analyze') }}" class="btn btn-primary-ns btn-sm"><i class="bi bi-camera-fill me-1"></i>Analyze Food</a>
+        <a href="{{ url_for('barcode') }}" class="btn btn-outline-ns btn-sm"><i class="bi bi-upc-scan me-1"></i>Scan Barcode</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function deleteLog(id) {
+    if (!confirm('Remove this food entry?')) return;
+    fetch('/api/log/delete/' + id, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const row = document.getElementById('row-' + id);
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = '0';
+          setTimeout(() => row.remove(), 300);
+        }
+      });
+  }
+</script>
+{% endblock %}

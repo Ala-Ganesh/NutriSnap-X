@@ -1,47 +1,168 @@
 {% extends "base.html" %}
+{% block title %}Analytics — NutriSnap-X{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
 {% block content %}
+<div class="content-grid">
 
-<h3 class="section-title">Nutrition Analytics</h3>
+  <!-- Controls -->
+  <div class="card-ns animate-in col-span-full">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span class="text-muted small">View period:</span>
+      <div class="btn-group period-group" role="group">
+        <button type="button" class="btn btn-period active" data-days="7">7 Days</button>
+        <button type="button" class="btn btn-period" data-days="14">14 Days</button>
+        <button type="button" class="btn btn-period" data-days="30">30 Days</button>
+      </div>
+    </div>
+  </div>
 
-<div class="card-metric mb-4">
-    <h5 class="mb-3">Calories by Food</h5>
-    <canvas id="calChart"></canvas>
+  <!-- Calories Chart -->
+  <div class="card-ns chart-card animate-in col-span-2" style="--delay:0.1s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-fire me-2 text-ns-green"></i>Calorie Trend</span>
+    </div>
+    <canvas id="caloriesChart" height="90"></canvas>
+  </div>
+
+  <!-- Protein Chart -->
+  <div class="card-ns chart-card animate-in" style="--delay:0.15s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-egg-fill me-2 text-ns-green"></i>Protein (g)</span>
+    </div>
+    <canvas id="proteinChart" height="130"></canvas>
+  </div>
+
+  <!-- Carbs Chart -->
+  <div class="card-ns chart-card animate-in" style="--delay:0.2s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-grid-3x3-gap-fill me-2 text-ns-green"></i>Carbohydrates (g)</span>
+    </div>
+    <canvas id="carbsChart" height="130"></canvas>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="card-ns animate-in col-span-full" style="--delay:0.25s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-table me-2 text-ns-green"></i>Period Summary</span>
+    </div>
+    <div class="analytics-summary" id="summaryStats">
+      <div class="summary-item">
+        <div class="summary-val" id="s_avg_cal">—</div>
+        <div class="summary-label">Avg Calories/Day</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val" id="s_max_cal">—</div>
+        <div class="summary-label">Peak Day</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val" id="s_avg_pro">—</div>
+        <div class="summary-label">Avg Protein/Day</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val" id="s_avg_carb">—</div>
+        <div class="summary-label">Avg Carbs/Day</div>
+      </div>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
 
-<div class="card-metric">
-    <h5 class="mb-3">Macros Trend</h5>
-    <canvas id="macroChart"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+{% block scripts %}
 <script>
-const foods = {{ foods|tojson }};
-const calories = {{ calories|tojson }};
-const protein = {{ protein|tojson }};
-const carbs = {{ carbs|tojson }};
+  let calChart = null, proChart = null, carbChart = null;
 
-new Chart(document.getElementById("calChart"), {
-    type: "bar",
-    data: {
-        labels: foods,
+  const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: 'var(--text-muted)', font: { size: 11 } } },
+      y: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: 'var(--text-muted)', font: { size: 11 } }, beginAtZero: true }
+    }
+  };
+
+  function buildCharts(labels, calories, protein, carbs) {
+    if (calChart)  calChart.destroy();
+    if (proChart)  proChart.destroy();
+    if (carbChart) carbChart.destroy();
+
+    calChart = new Chart(document.getElementById('caloriesChart'), {
+      type: 'bar',
+      data: {
+        labels,
         datasets: [{
-            label: "Calories",
-            data: calories
+          label: 'Calories',
+          data: calories,
+          backgroundColor: 'rgba(46,204,113,0.25)',
+          borderColor: '#2ECC71',
+          borderWidth: 2,
+          borderRadius: 6,
+          fill: true
         }]
-    }
-});
+      },
+      options: chartDefaults
+    });
 
-new Chart(document.getElementById("macroChart"), {
-    type: "line",
-    data: {
-        labels: foods,
-        datasets: [
-            { label: "Protein", data: protein },
-            { label: "Carbs", data: carbs }
-        ]
-    }
-});
+    proChart = new Chart(document.getElementById('proteinChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Protein',
+          data: protein,
+          borderColor: '#3498DB',
+          backgroundColor: 'rgba(52,152,219,0.1)',
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#3498DB'
+        }]
+      },
+      options: chartDefaults
+    });
+
+    carbChart = new Chart(document.getElementById('carbsChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Carbs',
+          data: carbs,
+          borderColor: '#f39c12',
+          backgroundColor: 'rgba(243,156,18,0.1)',
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#f39c12'
+        }]
+      },
+      options: chartDefaults
+    });
+
+    // Summary
+    const avg = arr => arr.length ? (arr.reduce((a,b) => a+b,0) / arr.filter(v=>v>0).length || 1).toFixed(0) : '—';
+    const max = arr => arr.length ? Math.max(...arr).toFixed(0) : '—';
+    document.getElementById('s_avg_cal').textContent  = avg(calories) + ' kcal';
+    document.getElementById('s_max_cal').textContent  = max(calories) + ' kcal';
+    document.getElementById('s_avg_pro').textContent  = avg(protein)  + 'g';
+    document.getElementById('s_avg_carb').textContent = avg(carbs)    + 'g';
+  }
+
+  function loadData(days) {
+    fetch(`/api/analytics/data?days=${days}`)
+      .then(r => r.json())
+      .then(d => buildCharts(d.labels, d.calories, d.protein, d.carbs));
+  }
+
+  document.querySelectorAll('.btn-period').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      loadData(parseInt(this.dataset.days));
+    });
+  });
+
+  loadData(7);
 </script>
-
 {% endblock %}

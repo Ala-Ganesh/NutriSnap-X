@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}PDF Report — NutriSnap-X{% endblock %}
+{% block page_title %}Weekly PDF Report{% endblock %}
+
+{% block content %}
+<div class="content-single">
+  <div class="card-ns animate-in text-center py-5">
+    <div class="report-icon-wrap mb-3">
+      <i class="bi bi-file-earmark-pdf-fill report-icon"></i>
+    </div>
+    <h3 class="mb-2">Weekly Nutrition Report</h3>
+    <p class="text-muted mb-4">Download your personalised 7-day nutrition summary as a professional PDF — perfect for sharing with a dietitian or tracking your progress.</p>
+
+    <div class="report-features mb-4">
+      <div class="report-feature"><i class="bi bi-check-circle-fill text-ns-green"></i> Calorie &amp; macro breakdown</div>
+      <div class="report-feature"><i class="bi bi-check-circle-fill text-ns-green"></i> Complete food log table</div>
+      <div class="report-feature"><i class="bi bi-check-circle-fill text-ns-green"></i> Daily averages vs goals</div>
+      <div class="report-feature"><i class="bi bi-check-circle-fill text-ns-green"></i> Professional A4 format</div>
+    </div>
+
+    <a href="{{ url_for('generate_report') }}" class="btn btn-primary-ns btn-lg px-5" id="downloadBtn">
+      <i class="bi bi-download me-2"></i>Download Report
+    </a>
+    <p class="text-muted small mt-3">Last 7 days of data • Generated instantly</p>
+  </div>
+</div>
+{% endblock %}

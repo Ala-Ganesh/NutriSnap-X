@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block title %}Barcode Scanner — NutriSnap-X{% endblock %}
+{% block page_title %}Barcode Scanner{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="content-grid">
+
+  <!-- Scanner Card -->
+  <div class="card-ns scanner-card animate-in">
+    <div class="card-header-ns">
+      <span><i class="bi bi-upc-scan me-2 text-ns-green"></i>Barcode Scanner</span>
+    </div>
+    <p class="text-muted small mb-3">
+      Scan a product barcode to instantly fetch its nutritional information from our global database.
+    </p>
+
+    <div id="scannerArea" class="scanner-area d-none">
+      <div id="reader"></div>
+    </div>
+
+    <div id="scannerPlaceholder" class="scanner-placeholder">
+      <div class="scanner-icon"><i class="bi bi-upc-scan"></i></div>
+      <p>Camera permission required to scan barcodes</p>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-3">
+      <button id="startScanBtn" class="btn btn-primary-ns" onclick="startScanner()">
+        <i class="bi bi-camera-fill me-2"></i>Enable Camera & Scan
+      </button>
+      <button id="stopScanBtn" class="btn btn-outline-ns d-none" onclick="stopScanner()">
+        <i class="bi bi-stop-circle me-2"></i>Stop Scanner
+      </button>
+    </div>
+
+    <div class="divider-text my-3">or enter barcode manually</div>
+
+    <div class="d-flex gap-2">
+      <input type="text" id="manualBarcode" class="form-control" placeholder="e.g. 8901063151101" />
+      <button class="btn btn-outline-ns" onclick="lookupBarcode(document.getElementById('manualBarcode').value)">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Manual Entry -->
+  <div class="card-ns animate-in" style="--delay:0.1s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-pencil-square me-2 text-ns-green"></i>Manual Entry</span>
+    </div>
+    <p class="text-muted small mb-3">Can't scan? Enter nutrition details manually.</p>
+
+    <div id="manualForm">
+      <div class="mb-2">
+        <input type="text" id="m_name" class="form-control" placeholder="Food name" />
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-6">
+          <input type="number" id="m_cal" class="form-control" placeholder="Calories" min="0" />
+        </div>
+        <div class="col-6">
+          <input type="number" id="m_pro" class="form-control" placeholder="Protein (g)" min="0" step="0.1" />
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <input type="number" id="m_carb" class="form-control" placeholder="Carbs (g)" min="0" step="0.1" />
+        </div>
+        <div class="col-6">
+          <input type="number" id="m_fat" class="form-control" placeholder="Fat (g)" min="0" step="0.1" />
+        </div>
+      </div>
+      <button class="btn btn-primary-ns w-100" onclick="submitManual()">
+        <i class="bi bi-plus-circle me-2"></i>Log This Food
+      </button>
+    </div>
+    <div id="manualSuccess" class="d-none">
+      <div class="alert alert-success py-2">
+        <i class="bi bi-check-circle me-2"></i><span id="manualMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div id="resultPanel" class="card-ns result-panel animate-in col-span-2 d-none" style="--delay:0.15s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-clipboard2-check-fill me-2 text-ns-green"></i>Scan Result</span>
+      <span id="resultSource" class="badge-ns"></span>
+    </div>
+
+    <div class="barcode-result">
+      <div id="productImgWrap" class="product-img-wrap d-none">
+        <img id="productImg" src="" alt="Product" class="product-img" />
+      </div>
+      <div class="product-info">
+        <h3 id="productName" class="product-name"></h3>
+        <p id="productBrand" class="text-muted small"></p>
+
+        <div class="health-indicator-wrap">
+          <span class="text-muted small me-2">Health:</span>
+          <span id="healthBadge" class="health-badge"></span>
+        </div>
+
+        <div class="nutrition-grid mt-3">
+          <div class="nutr-item nutr-cal">
+            <div class="nutr-val" id="r_cal">—</div>
+            <div class="nutr-label">Cal</div>
+          </div>
+          <div class="nutr-item nutr-pro">
+            <div class="nutr-val" id="r_pro">—</div>
+            <div class="nutr-label">Protein</div>
+          </div>
+          <div class="nutr-item nutr-carb">
+            <div class="nutr-val" id="r_carb">—</div>
+            <div class="nutr-label">Carbs</div>
+          </div>
+          <div class="nutr-item nutr-fat">
+            <div class="nutr-val" id="r_fat">—</div>
+            <div class="nutr-label">Fat</div>
+          </div>
+          <div class="nutr-item nutr-fib">
+            <div class="nutr-val" id="r_fib">—</div>
+            <div class="nutr-label">Fibre</div>
+          </div>
+        </div>
+
+        <div class="ai-suggestion-box mt-3">
+          <i class="bi bi-robot suggestion-icon"></i>
+          <p id="aiSuggestion" class="mb-0 small"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultLogging" class="text-muted small text-center mt-2">
+      <i class="bi bi-check-circle-fill text-success me-1"></i>Nutritional data logged to your diary.
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loadingPanel" class="card-ns text-center py-5 d-none animate-in col-span-2">
+    <div class="spinner-border text-ns-green mb-3" role="status"></div>
+    <p class="text-muted">Fetching nutritional data…</p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let html5QrCode = null;
+  let scanning    = false;
+
+  function startScanner() {
+    document.getElementById('scannerPlaceholder').classList.add('d-none');
+    document.getElementById('scannerArea').classList.remove('d-none');
+    document.getElementById('startScanBtn').classList.add('d-none');
+    document.getElementById('stopScanBtn').classList.remove('d-none');
+
+    html5QrCode = new Html5Qrcode('reader');
+    html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 150 } },
+      (decodedText) => {
+        stopScanner();
+        lookupBarcode(decodedText);
+      },
+      () => {}
+    ).catch(err => {
+      alert('Camera error: ' + err);
+      stopScanner();
+    });
+    scanning = true;
+  }
+
+  function stopScanner() {
+    if (html5QrCode && scanning) {
+      html5QrCode.stop().then(() => {
+        document.getElementById('scannerArea').classList.add('d-none');
+        document.getElementById('scannerPlaceholder').classList.remove('d-none');
+        document.getElementById('startScanBtn').classList.remove('d-none');
+        document.getElementById('stopScanBtn').classList.add('d-none');
+        scanning = false;
+      });
+    }
+  }
+
+  function lookupBarcode(barcode) {
+    if (!barcode || barcode.trim() === '') {
+      alert('Please enter a barcode number.');
+      return;
+    }
+
+    document.getElementById('resultPanel').classList.add('d-none');
+    document.getElementById('loadingPanel').classList.remove('d-none');
+
+    fetch('/api/barcode/lookup', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ barcode: barcode.trim() })
+    })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('loadingPanel').classList.add('d-none');
+      if (data.success) {
+        showResult(data);
+      } else {
+        alert('Product not found. Try manual entry.');
+      }
+    })
+    .catch(() => {
+      document.getElementById('loadingPanel').classList.add('d-none');
+      alert('Network error. Please check your connection.');
+    });
+  }
+
+  function showResult(data) {
+    const panel = document.getElementById('resultPanel');
+    panel.classList.remove('d-none');
+
+    document.getElementById('productName').textContent  = data.food_name || 'Unknown Product';
+    document.getElementById('productBrand').textContent = data.brand     || '';
+    document.getElementById('r_cal').textContent  = data.calories  + ' kcal';
+    document.getElementById('r_pro').textContent  = data.protein   + 'g';
+    document.getElementById('r_carb').textContent = data.carbs     + 'g';
+    document.getElementById('r_fat').textContent  = data.fat       + 'g';
+    document.getElementById('r_fib').textContent  = data.fibre     + 'g';
+    document.getElementById('aiSuggestion').textContent = data.ai_suggestion || '';
+
+    // Source badge
+    const src = data.source === 'openfoodfacts' ? '🌍 OpenFoodFacts' : '🤖 AI Estimate';
+    document.getElementById('resultSource').textContent = src;
+
+    // Health indicator
+    const hb = document.getElementById('healthBadge');
+    hb.className = 'health-badge health-' + data.health_indicator;
+    hb.textContent = { green: '🟢 Healthy', yellow: '🟡 Moderate', red: '🔴 Limit' }[data.health_indicator] || '';
+
+    // Product image
+    if (data.image_url) {
+      document.getElementById('productImg').src = data.image_url;
+      document.getElementById('productImgWrap').classList.remove('d-none');
+    } else {
+      document.getElementById('productImgWrap').classList.add('d-none');
+    }
+  }
+
+  function submitManual() {
+    const name = document.getElementById('m_name').value.trim();
+    const cal  = parseFloat(document.getElementById('m_cal').value)  || 0;
+    const pro  = parseFloat(document.getElementById('m_pro').value)  || 0;
+    const carb = parseFloat(document.getElementById('m_carb').value) || 0;
+    const fat  = parseFloat(document.getElementById('m_fat').value)  || 0;
+
+    if (!name) { alert('Please enter a food name.'); return; }
+
+    fetch('/api/barcode/manual', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ food_name: name, calories: cal, protein: pro, carbs: carb, fat: fat, fibre: 0 })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('manualForm').classList.add('d-none');
+        document.getElementById('manualMsg').textContent   = data.message;
+        document.getElementById('manualSuccess').classList.remove('d-none');
+      }
+    });
+  }
+</script>
+{% endblock %}

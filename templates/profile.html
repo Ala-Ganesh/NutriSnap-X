@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Profile — NutriSnap-X{% endblock %}
+{% block page_title %}Profile & Settings{% endblock %}
+
+{% block content %}
+<div class="content-single">
+  <div class="card-ns animate-in">
+    <div class="card-header-ns">
+      <span><i class="bi bi-person-circle me-2 text-ns-green"></i>Account Settings</span>
+    </div>
+
+    <div class="profile-header mb-4">
+      <div class="profile-avatar">
+        {{ current_user.full_name[0].upper() }}
+      </div>
+      <div>
+        <h4 class="mb-0">{{ current_user.full_name }}</h4>
+        <p class="text-muted small mb-0">{{ current_user.email }}</p>
+        <p class="text-muted small">Member since {{ current_user.created_at.strftime('%B %Y') }}</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('profile') }}">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Full Name</label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-person-fill input-icon"></i>
+            <input type="text" name="full_name" class="form-control input-with-icon"
+                   value="{{ current_user.full_name }}" required />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email (read-only)</label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-envelope-fill input-icon"></i>
+            <input type="email" class="form-control input-with-icon" value="{{ current_user.email }}" disabled />
+          </div>
+        </div>
+
+        <div class="col-12 mt-3">
+          <h6 class="text-ns-green mb-3"><i class="bi bi-sliders me-2"></i>Nutrition Goals</h6>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Daily Calorie Goal (kcal)</label>
+          <input type="number" name="calorie_goal" class="form-control"
+                 value="{{ current_user.daily_calorie_goal }}" min="800" max="5000" step="50" required />
+          <div class="form-text">Recommended: 1600–2500 kcal</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Protein Goal (g/day)</label>
+          <input type="number" name="protein_goal" class="form-control"
+                 value="{{ current_user.protein_goal }}" min="20" max="250" step="5" required />
+          <div class="form-text">~0.8–1.2g per kg body weight</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fibre Goal (g/day)</label>
+          <input type="number" name="fibre_goal" class="form-control"
+                 value="{{ current_user.fibre_goal }}" min="10" max="60" step="1" required />
+          <div class="form-text">Recommended: 25–38g/day</div>
+        </div>
+
+        <div class="col-12 mt-3">
+          <h6 class="text-ns-green mb-3"><i class="bi bi-palette me-2"></i>Theme Preference</h6>
+          <div class="theme-selector">
+            <button type="button" class="theme-option" onclick="setTheme('light')" id="themeLight">
+              <i class="bi bi-sun-fill"></i> Light
+            </button>
+            <button type="button" class="theme-option" onclick="setTheme('dark')" id="themeDark">
+              <i class="bi bi-moon-stars-fill"></i> Dark
+            </button>
+            <button type="button" class="theme-option" onclick="setTheme('system')" id="themeSystem">
+              <i class="bi bi-circle-half"></i> System
+            </button>
+          </div>
+          <div class="form-text mt-2">Theme is saved in your browser and applies immediately.</div>
+        </div>
+
+        <div class="col-12 mt-4">
+          <button type="submit" class="btn btn-primary-ns px-5">
+            <i class="bi bi-check-circle-fill me-2"></i>Save Changes
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Highlight active theme button
+  const current = localStorage.getItem('nutrisnap-theme') || 'system';
+  document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('theme' + current.charAt(0).toUpperCase() + current.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+
+  function setTheme(t) {
+    localStorage.setItem('nutrisnap-theme', t);
+    applyTheme(t);
+    document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
+    document.getElementById('theme' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
+  }
+</script>
+{% endblock %}

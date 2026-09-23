@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Analysis Result — NutriSnap-X{% endblock %}
+{% block page_title %}Analysis Result{% endblock %}
+
+{% block content %}
+<div class="content-grid">
+
+  <!-- Result Card -->
+  <div class="card-ns result-card animate-in col-span-2">
+    <div class="result-header">
+      <div class="result-icon">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <h2 class="result-food-name">{{ detection.food_name }}</h2>
+        <div class="result-meta">
+          <span class="badge-ns">
+            <i class="bi bi-cpu-fill me-1"></i>AI Detection
+          </span>
+          <span class="confidence-badge">
+            {{ (detection.confidence * 100) | int }}% confidence
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {% if filename %}
+    <div class="result-image-wrap">
+      <img src="{{ url_for('static', filename='uploads/' + filename) }}"
+           alt="{{ detection.food_name }}" class="result-image" />
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Nutrition Grid -->
+  <div class="card-ns animate-in" style="--delay:0.1s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-clipboard2-data-fill me-2 text-ns-green"></i>Nutritional Info</span>
+      <span class="text-muted small">per {{ detection.serving_g }}g serving</span>
+    </div>
+    <div class="nutrition-grid">
+      <div class="nutr-item nutr-cal">
+        <div class="nutr-icon"><i class="bi bi-fire"></i></div>
+        <div class="nutr-val">{{ detection.calories | int }}</div>
+        <div class="nutr-label">Calories</div>
+      </div>
+      <div class="nutr-item nutr-pro">
+        <div class="nutr-icon"><i class="bi bi-egg-fill"></i></div>
+        <div class="nutr-val">{{ detection.protein | round(1) }}g</div>
+        <div class="nutr-label">Protein</div>
+      </div>
+      <div class="nutr-item nutr-carb">
+        <div class="nutr-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+        <div class="nutr-val">{{ detection.carbs | round(1) }}g</div>
+        <div class="nutr-label">Carbs</div>
+      </div>
+      <div class="nutr-item nutr-fat">
+        <div class="nutr-icon"><i class="bi bi-droplet-fill"></i></div>
+        <div class="nutr-val">{{ detection.fat | round(1) }}g</div>
+        <div class="nutr-label">Fat</div>
+      </div>
+      <div class="nutr-item nutr-fib">
+        <div class="nutr-icon"><i class="bi bi-tree-fill"></i></div>
+        <div class="nutr-val">{{ detection.fibre | round(1) }}g</div>
+        <div class="nutr-label">Fibre</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Suggestion -->
+  <div class="card-ns animate-in" style="--delay:0.15s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-robot me-2 text-ns-green"></i>AI Suggestion</span>
+    </div>
+    <div class="ai-suggestion-box">
+      <i class="bi bi-chat-square-text-fill suggestion-icon"></i>
+      <p>{{ detection.food_name }} provides <strong>{{ detection.calories | int }} kcal</strong>
+        with <strong>{{ detection.protein | round(1) }}g protein</strong>.
+        {% if detection.protein > 10 %}Great protein content for muscle support!{% endif %}
+        {% if detection.carbs > 40 %}High carb content — ideal before physical activity.{% endif %}
+        {% if detection.fibre > 3 %}Rich in fibre which supports digestion.{% endif %}
+        Track your portions to stay within your daily goal.
+      </p>
+    </div>
+
+    <div class="d-flex gap-3 mt-4">
+      <a href="{{ url_for('analyze') }}" class="btn btn-primary-ns flex-fill">
+        <i class="bi bi-camera-fill me-2"></i>Analyse Another
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-ns flex-fill">
+        <i class="bi bi-grid me-2"></i>Dashboard
+      </a>
+    </div>
+    <p class="text-muted small text-center mt-2">✅ This meal has been automatically logged to your diary.</p>
+  </div>
+
+</div>
+{% endblock %}

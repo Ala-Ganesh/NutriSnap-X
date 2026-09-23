@@ -1,216 +1,184 @@
-# 🥗 NutriSnap-X — AI Nutrition Intelligence System
-
-## 🌐 Live Demo
-👉  https://nutrisnap-x.onrender.com
-
-NutriSnap-X is a full-stack AI-powered web application that detects food from images and provides detailed nutritional analysis, health insights, and personalized recommendations.
-
-This project is developed as a **B.Tech Major Project** integrating **Computer Vision, Machine Learning, and Web Development** into a deployable system.
+# 🥗 NutriSnap-X
+### AI-Based Food Nutrition Analysis Web Application
+**B.Tech Major Project | Full-Stack Flask Application**
 
 ---
 
-## 🚀 Key Features
-
-### 🤖 AI Food Detection
-- Detects food items from uploaded images
-- Uses pretrained **Food-101 deep learning model**
-- Displays predicted food with nutritional values
-
-### 📊 Nutrition Analysis
-- Calories, Protein, Carbohydrates estimation
-- Health Score (0–100) per meal
-- Smart dietary insights
-
-### 🎯 Goal-Based System
-Users can select goals:
-- Weight Loss
-- Weight Gain
-- Gym / Muscle Building
-- Standard Healthy Diet
-- Senior Citizen
-
-System adjusts recommendations dynamically.
-
-### 📈 Weekly Analytics Dashboard
-- Weekly calorie tracking
-- Protein & carb monitoring
-- Average daily intake
-- Limit-based alerts
-
-### 🧠 Smart Alerts Engine
-- Overeating detection
-- Low protein warnings
-- Health score analysis
-
-### 🤝 Personalization Engine
-- AI-generated diet suggestions
-- Goal-based recommendations
-- Weekly performance feedback
-
-### 📄 PDF Report Generation
-- Weekly AI Nutrition Report
-- Includes:
-  - User data
-  - Metrics
-  - Health score
-  - Personalized advice
-- Professionally formatted using ReportLab
-
-### 📷 Barcode Scanner
-- Scan packaged foods
-- Fetch nutrition instantly
-
-### 🔐 Authentication System
-- User registration & login
-- Secure password hashing
-- Session management
-
-### 🔒 Privacy & Data Policy
-- Transparent data handling
-- Academic prototype security standards
-
----
-
-## 🧠 Technologies Used
-
-| Category | Technologies |
-|--------|-------------|
-| Backend | Python, Flask |
-| Frontend | HTML, CSS, Bootstrap |
-| Database | SQLite, SQLAlchemy |
-| AI/ML | PyTorch, Food-101 |
-| Image Processing | OpenCV, Pillow |
-| Reports | ReportLab |
-| Authentication | Flask-Login |
-| Deployment | Render |
-
----
-
-## 🏗️ System Architecture
-NutriSnap-X/
-
-│
-
-├── app.py
-
-├── auth/
-
-├── database/
-
-├── food_detection/
-
-├── nutrition/
-
-├── utils/
-
-├── templates/
-
-├── static/
-
-├── extensions.py
-
-├── requirements.txt
-
-├── Procfile
-
-└── .gitignore
-
-
-
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone the Repository
+## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/Ala-Ganesh/NutriSnap-X.git
+# 1. Clone or extract the project
 cd NutriSnap-X
 
-2️⃣ Create Virtual Environment
+# 2. Create a virtual environment (recommended)
 python -m venv venv
-venv\Scripts\activate   # Windows
+source venv/bin/activate        # Linux / Mac
+venv\Scripts\activate           # Windows
 
-3️⃣ Install Dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
-4️⃣ Run Application
+# 4. Configure environment (optional)
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY if desired
+
+# 5. Run the app
 python app.py
+```
 
-5️⃣ Open in Browser
-http://127.0.0.1:5000
+Open your browser at **http://localhost:5000**
 
-☁️ Deployment (Render)
+---
 
-Use gunicorn app:app
+## 📁 Project Structure
 
-Add environment variables if needed
+```
+NutriSnap-X/
+│
+├── app.py                  ← Main Flask app (entry point)
+├── extensions.py           ← SQLAlchemy + LoginManager init
+├── requirements.txt        ← Python dependencies
+├── Procfile                ← Render / Heroku deployment
+├── .env.example            ← Environment variable template
+├── .gitignore
+├── README.md
+│
+├── auth/
+│   ├── __init__.py
+│   └── routes.py           ← Register, Login, Logout blueprint
+│
+├── database/
+│   ├── __init__.py
+│   └── models.py           ← User, FoodLog, BarcodeLog models
+│
+├── nutrition/
+│   ├── __init__.py
+│   └── nutrition_db.py     ← Local nutrition reference database
+│
+├── utils/
+│   ├── __init__.py
+│   └── helpers.py          ← Health score, PDF report, mock AI detection
+│
+├── templates/
+│   ├── base.html           ← Base layout with sidebar + topbar
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html      ← Main dashboard
+│   ├── analyze.html        ← Food image upload
+│   ├── analyze_result.html ← Detection result
+│   ├── barcode.html        ← Barcode scanner
+│   ├── analytics.html      ← Charts
+│   ├── logs.html           ← Food diary
+│   ├── report.html         ← PDF download page
+│   ├── chat.html           ← AI chatbot
+│   └── profile.html        ← User settings
+│
+├── static/
+│   ├── css/
+│   │   └── style.css       ← Full custom stylesheet
+│   ├── js/
+│   │   ├── theme.js        ← Light/Dark/System theme engine
+│   │   └── app.js          ← Sidebar, animations, utilities
+│   └── uploads/            ← User-uploaded food images
+│
+└── instance/
+    └── nutrisnap.db        ← SQLite database (auto-created)
+```
 
-Ensure requirements.txt includes all dependencies
+---
 
-🧠 System Workflow
+## ✨ Features
 
-User uploads food image
+| Feature | Details |
+|---|---|
+| **Authentication** | Register, Login, Logout with password hashing |
+| **Dashboard** | Calories, macros, health score, weekly avg, tips |
+| **Food Image Analysis** | Upload → AI detection → Nutrition → Auto-logged |
+| **Barcode Scanner** | Camera scan via html5-qrcode → OpenFoodFacts API |
+| **AI Fallback** | Rule-based estimation when product not found |
+| **Manual Entry** | Quick form to log nutrition manually |
+| **Analytics** | 7/14/30-day calorie, protein, carbs charts |
+| **PDF Report** | Professional weekly nutrition summary |
+| **AI Chatbot** | OpenAI GPT-3.5 or rule-based fallback |
+| **Theme System** | Light / Dark / System — saved in localStorage |
+| **Responsive UI** | Mobile + tablet + desktop layouts |
 
-AI model detects food item
+---
 
-Nutrition values are estimated
+## 🔧 Tech Stack
 
-Health score is calculated
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.10+, Flask 3.0, Blueprint pattern |
+| Database | SQLite via SQLAlchemy ORM |
+| Auth | Flask-Login + Werkzeug password hashing |
+| Frontend | Bootstrap 5, Vanilla JS |
+| Charts | Chart.js 4 |
+| Barcode | html5-qrcode library |
+| Nutrition API | OpenFoodFacts (free, no key needed) |
+| AI Chat | OpenAI GPT-3.5 (optional) / rule-based fallback |
+| PDF | ReportLab |
+| Fonts | Syne + DM Sans (Google Fonts) |
+| Deployment | Gunicorn + Render / Railway / Heroku |
 
-Data stored in database
+---
 
-Dashboard & analytics updated
+## ⚙️ Configuration
 
-Personalized suggestions generated
+All configuration is done via environment variables in `.env`:
 
-🎯 Project Objectives
+| Variable | Default | Description |
+|---|---|---|
+| `SECRET_KEY` | auto | Flask secret — change in production |
+| `OPENAI_API_KEY` | (empty) | Enables real AI chatbot |
+| `FLASK_DEBUG` | `true` | Set to `false` in production |
+| `PORT` | `5000` | Server port |
 
-Automate food tracking using AI
+The app works fully **without** an OpenAI key — the chatbot falls back to an intelligent rule-based system.
 
-Reduce manual diet logging effort
+---
 
-Provide real-time nutrition insights
+## ☁️ Deployment (Render)
 
-Enable personalized health recommendations
+1. Push your project to a GitHub repository
+2. Create a new **Web Service** on [render.com](https://render.com)
+3. Connect your GitHub repo
+4. Set the following:
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT`
+5. Add environment variables in the Render dashboard
+6. Deploy 🚀
 
-🔒 Security Features
+---
 
-Password hashing (Werkzeug)
+## 📊 API Endpoints
 
-Session-based authentication
+| Method | Route | Description |
+|---|---|---|
+| POST | `/api/barcode/lookup` | Lookup barcode via OpenFoodFacts |
+| POST | `/api/barcode/manual` | Log food manually |
+| GET  | `/api/analytics/data` | Chart data (days param) |
+| GET  | `/api/report/generate` | Download PDF report |
+| POST | `/api/chat` | AI nutrition chatbot |
+| DELETE | `/api/log/delete/<id>` | Delete a food log entry |
 
-Secure file uploads
+---
 
-📊 Future Enhancements
+## 🎓 For Viva
 
-Real-time camera detection (Google Lens style)
+- **Architecture:** MVC-style Flask Blueprint pattern with separation of concerns
+- **Database:** SQLAlchemy ORM with proper relationship modeling and absolute SQLite path
+- **Security:** Password hashing (Werkzeug PBKDF2), login required decorators, CSRF via Flask session
+- **AI Integration:** Mock food detection + OpenFoodFacts API + OpenAI GPT-3.5 (with graceful fallback)
+- **Scalability:** Blueprint architecture supports adding new modules without touching core app
+- **Deployment:** Production-ready with Gunicorn WSGI server and environment variable configuration
 
-Multi-food detection in one image
+---
 
-Mobile app integration
+## 📝 License
 
-Cloud database (PostgreSQL)
+Built for educational purposes as a B.Tech Major Project.
 
-Advanced AI model fine-tuning
+---
 
-👨‍🎓 Academic Details
-
-Project Type: B.Tech Major Project
-
-Domain: Artificial Intelligence + Web Development
-
-Focus: HealthTech / Nutrition Intelligence
-
-👥 Developed By
-
-Ala Ganesh
-B.Tech (CSE - Data Science)
-
-📜 License
-
-This project is developed for academic purposes only.
-
-⭐ Final Note
-
-NutriSnap-X demonstrates how AI can be integrated into everyday life to promote healthier eating habits through intelligent automation.
+*Made with ❤️ using Flask + Bootstrap 5 + Chart.js*

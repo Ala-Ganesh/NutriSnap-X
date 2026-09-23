@@ -1,43 +1,112 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>NutriGenie AI Chat</title>
-    <style>
-        body { font-family: Arial; max-width: 800px; margin: 30px auto; }
-        #chatBox { border:1px solid #ccc; height:400px; overflow:auto; padding:10px; }
-        .user { color: blue; margin:8px 0; }
-        .bot { color: green; margin:8px 0; }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}AI Chatbot — NutriSnap-X{% endblock %}
+{% block page_title %}AI Nutrition Chatbot{% endblock %}
 
-<h2>🤖 NutriGenie AI Assistant</h2>
+{% block content %}
+<div class="content-single">
+  <div class="card-ns chat-card animate-in">
+    <div class="card-header-ns">
+      <span><i class="bi bi-robot me-2 text-ns-green"></i>NutriBot — AI Nutrition Assistant</span>
+      <span class="badge-ns online-badge"><i class="bi bi-circle-fill me-1" style="font-size:8px;color:#2ECC71"></i>Online</span>
+    </div>
 
-<div id="chatBox"></div>
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-msg bot">
+        <div class="chat-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="chat-bubble">
+          Hi! I'm <strong>NutriBot</strong>, your personal AI nutrition assistant 🥗<br>
+          Ask me about calories, macros, healthy eating, weight management, or anything nutrition-related!
+        </div>
+      </div>
+    </div>
 
-<input type="text" id="msg" style="width:80%;">
-<button onclick="send()">Send</button>
+    <div class="chat-suggestions mb-3">
+      <button class="suggestion-chip" onclick="sendSuggestion(this)">What foods are high in protein?</button>
+      <button class="suggestion-chip" onclick="sendSuggestion(this)">How many calories should I eat?</button>
+      <button class="suggestion-chip" onclick="sendSuggestion(this)">What is a balanced diet?</button>
+      <button class="suggestion-chip" onclick="sendSuggestion(this)">Benefits of dietary fibre?</button>
+    </div>
 
+    <div class="chat-input-wrap">
+      <input type="text" id="chatInput" class="form-control chat-input" placeholder="Ask me anything about nutrition..." autocomplete="off" />
+      <button class="btn btn-primary-ns chat-send" id="sendBtn" onclick="sendMessage()">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+    <p class="text-muted small text-center mt-2">NutriBot provides general nutritional guidance, not medical advice.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
-async function send(){
-    const box = document.getElementById("chatBox");
-    const msg = document.getElementById("msg").value;
-    if(!msg) return;
+  const chatWindow = document.getElementById('chatWindow');
+  const chatInput  = document.getElementById('chatInput');
+  const sendBtn    = document.getElementById('sendBtn');
 
-    box.innerHTML += `<div class="user"><b>You:</b> ${msg}</div>`;
-    document.getElementById("msg").value = "";
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
 
-    const r = await fetch("/api/chat", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({message: msg})
+  function sendSuggestion(btn) {
+    chatInput.value = btn.textContent;
+    sendMessage();
+  }
+
+  function sendMessage() {
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+
+    appendMsg('user', msg);
+    chatInput.value = '';
+    sendBtn.disabled = true;
+
+    appendTyping();
+
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    })
+    .then(r => r.json())
+    .then(data => {
+      removeTyping();
+      sendBtn.disabled = false;
+      appendMsg('bot', data.reply || 'Sorry, I could not process that.');
+    })
+    .catch(() => {
+      removeTyping();
+      sendBtn.disabled = false;
+      appendMsg('bot', 'Network error. Please try again.');
     });
+  }
 
-    const data = await r.json();
-    box.innerHTML += `<div class="bot"><b>NutriGenie:</b> ${data.reply}</div>`;
-    box.scrollTop = box.scrollHeight;
-}
+  function appendMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + role;
+    div.innerHTML = `
+      <div class="chat-avatar ${role}-avatar">
+        <i class="bi bi-${role === 'bot' ? 'robot' : 'person-fill'}"></i>
+      </div>
+      <div class="chat-bubble">${text}</div>`;
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function appendTyping() {
+    const div = document.createElement('div');
+    div.className = 'chat-msg bot';
+    div.id = 'typingIndicator';
+    div.innerHTML = `
+      <div class="chat-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+      <div class="chat-bubble typing-bubble">
+        <span></span><span></span><span></span>
+      </div>`;
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
 </script>
-
-</body>
-</html>
+{% endblock %}

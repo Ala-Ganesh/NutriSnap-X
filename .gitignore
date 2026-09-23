@@ -1,11 +1,38 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
 .env
-models/
-weights/
-dataset/
-*.pt
-*.pth
-*.h5
-*.pkl
+*.env
+
+# Database
+instance/
+*.db
+*.sqlite3
+
+# Uploads (keep folder, ignore files)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

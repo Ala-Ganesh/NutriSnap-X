@@ -1,140 +1,249 @@
 {% extends "base.html" %}
+{% block title %}Dashboard — NutriSnap-X{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
 {% block content %}
+<div class="dashboard-grid">
 
-<h3 class="section-title mb-3">Dashboard</h3>
+  <!-- Alert (max 1) -->
+  {% if alert %}
+  <div class="col-span-full">
+    <div class="smart-alert alert-{{ alert.type }}">
+      <i class="bi bi-{% if alert.type == 'warning' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}"></i>
+      {{ alert.msg }}
+    </div>
+  </div>
+  {% endif %}
 
-<!-- 🔥 ALERT (ONLY ONE) -->
-{% if alerts %}
-<div class="alert alert-warning">
-    {{ alerts[0] }}
-</div>
-{% endif %}
+  <!-- Stats Row -->
+  <div class="stat-card animate-in" style="--delay:0.05s">
+    <div class="stat-icon bg-calories">
+      <i class="bi bi-fire"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-label">Calories Today</div>
+      <div class="stat-value">{{ total_calories | int }}<span class="stat-unit">kcal</span></div>
+      <div class="stat-sub">Goal: {{ daily_goal }} kcal</div>
+    </div>
+  </div>
 
-<!-- 🔥 KPI CARDS -->
-<div class="row text-center g-3 mt-2">
+  <div class="stat-card animate-in" style="--delay:0.1s">
+    <div class="stat-icon bg-protein">
+      <i class="bi bi-egg-fill"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-label">Protein</div>
+      <div class="stat-value">{{ total_protein }}<span class="stat-unit">g</span></div>
+      <div class="stat-sub">Goal: {{ protein_goal }}g</div>
+    </div>
+  </div>
 
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Goal Calories</h6>
-            <h4 class="text-success">{{ goal }}</h4>
+  <div class="stat-card animate-in" style="--delay:0.15s">
+    <div class="stat-icon bg-carbs">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-label">Carbs</div>
+      <div class="stat-value">{{ total_carbs }}<span class="stat-unit">g</span></div>
+      <div class="stat-sub">Weekly avg: {{ weekly_avg.avg_carbs }}g</div>
+    </div>
+  </div>
+
+  <div class="stat-card animate-in" style="--delay:0.2s">
+    <div class="stat-icon bg-score">
+      <i class="bi bi-heart-pulse-fill"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-label">Health Score</div>
+      <div class="stat-value">{{ health_score }}<span class="stat-unit">/100</span></div>
+      <div class="stat-sub">Weekly avg: {{ weekly_avg.avg_calories }} kcal</div>
+    </div>
+  </div>
+
+  <!-- Calorie Progress -->
+  <div class="card-ns progress-card animate-in col-span-2" style="--delay:0.25s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-lightning-charge-fill me-2 text-ns-green"></i>Daily Calorie Progress</span>
+      <span class="badge-ns">{{ cal_percentage }}%</span>
+    </div>
+    <div class="calorie-visual">
+      <div class="calorie-ring-wrap">
+        <svg class="calorie-ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="10"/>
+          <circle cx="60" cy="60" r="50" fill="none"
+            stroke="{{ '#e74c3c' if cal_percentage > 100 else '#2ECC71' }}"
+            stroke-width="10"
+            stroke-dasharray="{{ (cal_percentage / 100 * 314) | round(1) }} 314"
+            stroke-dashoffset="78.5"
+            stroke-linecap="round"
+            style="transition: stroke-dasharray 1s ease;" />
+        </svg>
+        <div class="ring-label">
+          <span class="ring-value">{{ cal_percentage }}%</span>
+          <span class="ring-sub">of goal</span>
         </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Consumed</h6>
-            <h4 class="text-primary">{{ total }}</h4>
+      </div>
+      <div class="calorie-details">
+        <div class="cal-row">
+          <span>Consumed</span>
+          <strong>{{ total_calories | int }} kcal</strong>
         </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Weekly Avg</h6>
-            <h4 class="text-info">{{ week_avg }}</h4>
+        <div class="cal-row">
+          <span>Goal</span>
+          <strong>{{ daily_goal }} kcal</strong>
         </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Health Score</h6>
-            <h4>{{ week_avg_score }}/100</h4>
+        <div class="cal-row">
+          <span>Remaining</span>
+          <strong class="{{ 'text-danger' if total_calories > daily_goal else 'text-success' }}">
+            {{ [daily_goal - total_calories | int, 0] | max }} kcal
+          </strong>
         </div>
-    </div>
-
-</div>
-
-<!-- 🔥 WEEKLY ANALYTICS -->
-<h5 class="mt-4 mb-3">Weekly Analytics</h5>
-<h5 class="mt-4">Protein Progress</h5>
-
-<div class="card p-3 shadow-sm">
-
-    <div class="d-flex justify-content-between">
-        <span>Daily Protein</span>
-        <span>{{ actual_protein }}g / {{ target_protein }}g</span>
-    </div>
-
-    <div class="progress mt-2" style="height: 20px;">
-        <div class="progress-bar 
-            {% if protein_percent < 50 %}
-                bg-danger
-            {% elif protein_percent < 80 %}
-                bg-warning
-            {% else %}
-                bg-success
-            {% endif %}"
-            role="progressbar"
-            style="width: {{ protein_percent }}%;">
-            
-            {{ protein_percent }}%
+        <div class="cal-row">
+          <span>Weekly Avg</span>
+          <strong>{{ weekly_avg.avg_calories }} kcal</strong>
         </div>
+      </div>
     </div>
+  </div>
 
-</div>
-
-<div class="row g-3">
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Weekly Calories</h6>
-            <h5 class="text-primary">{{ week_cal }}</h5>
+  <!-- Health Score Card -->
+  <div class="card-ns animate-in" style="--delay:0.3s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-heart-pulse-fill me-2 text-ns-green"></i>Health Score</span>
+    </div>
+    <div class="health-score-display">
+      <div class="score-number {{ 'score-good' if health_score >= 70 else 'score-fair' if health_score >= 40 else 'score-low' }}">
+        {{ health_score }}
+      </div>
+      <div class="score-label">
+        {% if health_score >= 70 %}Excellent{% elif health_score >= 50 %}Good{% elif health_score >= 30 %}Fair{% else %}Needs Attention{% endif %}
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-bar">
+          <div class="score-fill" style="width: {{ health_score }}%;
+            background: {{ '#2ECC71' if health_score >= 70 else '#f39c12' if health_score >= 40 else '#e74c3c' }};"></div>
         </div>
+      </div>
+      <div class="score-hint small text-muted mt-2">Based on today's nutrition balance</div>
     </div>
+  </div>
 
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Weekly Protein</h6>
-            <h5 class="text-success">{{ week_prot }}</h5>
+  <!-- Protein & Fibre Progress -->
+  <div class="card-ns animate-in" style="--delay:0.35s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-bar-chart-fill me-2 text-ns-green"></i>Macro Progress</span>
+    </div>
+    <div class="macro-bars">
+      <div class="macro-item">
+        <div class="macro-header">
+          <span>Protein</span>
+          <span>{{ total_protein }}g / {{ protein_goal }}g</span>
         </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Meals Logged</h6>
-            <h5>{{ week_count }}</h5>
+        <div class="macro-bar">
+          <div class="macro-fill fill-protein" style="width: {{ protein_percentage }}%"></div>
         </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
-            <h6>Goal</h6>
-            <h5>{{ current_user.goal }}</h5>
+        <div class="macro-pct">{{ protein_percentage }}%</div>
+      </div>
+      <div class="macro-item mt-3">
+        <div class="macro-header">
+          <span>Fibre</span>
+          <span>{{ total_fibre }}g / {{ fibre_goal }}g</span>
         </div>
+        <div class="macro-bar">
+          <div class="macro-fill fill-fibre" style="width: {{ fibre_percentage }}%"></div>
+        </div>
+        <div class="macro-pct">{{ fibre_percentage }}%</div>
+      </div>
     </div>
+  </div>
 
-</div>
-
-<!-- 🔥 WEEKLY LIMIT ALERT (OPTIONAL - 1 ONLY) -->
-{% if week_limit_alerts %}
-<div class="alert alert-danger mt-3">
-    {{ week_limit_alerts[0] }}
-</div>
-{% endif %}
-
-<!-- 🔥 SMART SUGGESTIONS -->
-<h5 class="mt-4">💡 Smart Suggestions</h5>
-
-<ul>
-    {% for tip in personal_tips %}
-        <li>{{ tip }}</li>
+  <!-- Tips -->
+  {% if tips %}
+  <div class="card-ns tips-card animate-in" style="--delay:0.4s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-lightbulb-fill me-2 text-ns-green"></i>Personalised Tips</span>
+    </div>
+    {% for tip in tips %}
+    <div class="tip-item">
+      <i class="bi bi-arrow-right-circle-fill text-ns-green"></i>
+      <span>{{ tip }}</span>
+    </div>
     {% endfor %}
-</ul>
+  </div>
+  {% endif %}
 
-<!-- 🔥 ACTION BUTTONS -->
-<div class="mt-4">
+  <!-- Recent Logs -->
+  <div class="card-ns recent-logs-card animate-in col-span-2" style="--delay:0.45s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-clock-history me-2 text-ns-green"></i>Recent Logs</span>
+      <a href="{{ url_for('logs') }}" class="btn-link-ns">View All <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% if recent_logs %}
+    <div class="table-responsive">
+      <table class="table-ns">
+        <thead>
+          <tr>
+            <th>Food</th>
+            <th>Calories</th>
+            <th>Protein</th>
+            <th>Source</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr>
+            <td><strong>{{ log.food_name }}</strong></td>
+            <td><span class="badge-cal">{{ log.calories | int }} kcal</span></td>
+            <td>{{ log.protein | round(1) }}g</td>
+            <td>
+              <span class="source-badge source-{{ log.source }}">
+                {{ log.source | capitalize }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ log.logged_at.strftime('%I:%M %p') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-journal-plus"></i>
+      <p>No food logged today. Start by analyzing a food image or scanning a barcode!</p>
+      <a href="{{ url_for('analyze') }}" class="btn btn-primary-ns btn-sm">Analyze Food</a>
+    </div>
+    {% endif %}
+  </div>
 
-    <a class="btn btn-primary me-2" href="/analyze">
-        Analyze Food
-    </a>
-
-    <a class="btn btn-outline-dark me-2" href="/analytics">
-        View Analytics
-    </a>
-
-    <a class="btn btn-outline-primary" href="/report/weekly">
-        Download Weekly Report
-    </a>
+  <!-- Quick Actions -->
+  <div class="card-ns animate-in col-span-full" style="--delay:0.5s">
+    <div class="card-header-ns">
+      <span><i class="bi bi-grid-1x2-fill me-2 text-ns-green"></i>Quick Actions</span>
+    </div>
+    <div class="quick-actions">
+      <a href="{{ url_for('analyze') }}" class="quick-btn">
+        <i class="bi bi-camera-fill"></i>
+        <span>Analyze Food</span>
+      </a>
+      <a href="{{ url_for('barcode') }}" class="quick-btn">
+        <i class="bi bi-upc-scan"></i>
+        <span>Scan Barcode</span>
+      </a>
+      <a href="{{ url_for('analytics') }}" class="quick-btn">
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>Analytics</span>
+      </a>
+      <a href="{{ url_for('chat') }}" class="quick-btn">
+        <i class="bi bi-robot"></i>
+        <span>Ask AI</span>
+      </a>
+      <a href="{{ url_for('generate_report') }}" class="quick-btn">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        <span>Download Report</span>
+      </a>
+    </div>
+  </div>
 
 </div>
-
 {% endblock %}
